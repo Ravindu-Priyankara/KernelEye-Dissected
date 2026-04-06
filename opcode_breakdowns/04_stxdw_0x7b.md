@@ -224,5 +224,5 @@ Starting from a simple question—why does memcpy use the stack?—I ended up ex
 
 ## Reference
 
-https://www.rfc-editor.org/rfc/rfc9669.html
-https://www.kernel.org/doc/html/v6.4/bpf/instruction-set.html
+- https://www.rfc-editor.org/rfc/rfc9669.html
+- https://www.kernel.org/doc/html/v6.4/bpf/instruction-set.html
