@@ -48,3 +48,19 @@ This one little bit different than size or class. So if we need to get real valu
 so now we have mode.
 - 0x60 = `BPF_MEM`
     - regular load and store operations
+
+## 3. Instruction meaning
+
+- opcode = BPF_LDX | BPF_W | BPF_MEM
+- meaning = Load a 32-bit Word into a destination register from a memory address.
+
+### 3.1 more details with pseudo-c
+
+`r2 = *(u32 *) (r3 +8)`
+
+- `r2` = destination register(Where the data goes)
+- `*(32 *)` =  Cast the address to a 32-bit (unsigned) pointer and dereference it.
+- `r3` = Source register (contains the base memory address).
+- `+8` = The immediate offset added to the source register.
+
+meaning = Load the r2 register with the 32-bit value found at the address r3 + 8.
