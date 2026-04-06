@@ -21,13 +21,13 @@
 
 So it's a load and store group opcode, and it follows 3-2-3 architecture.
 
-- class = 0x001
-- size = 0x00
-- mode = 0x011
+- class = 001
+- size = 00
+- mode = 011
 
 ### 2.1 Identify the class
 
-- Class 0x001 = `BPF_LDX`
+- Class 0x01 = `BPF_LDX`
     - meaning = load into register operations
 
 ### 2.2 Identify the size
@@ -64,3 +64,11 @@ so now we have mode.
 - `+8` = The immediate offset added to the source register.
 
 meaning = Load the r2 register with the 32-bit value found at the address r3 + 8.
+
+Important notes:
+- source bit is bitmask flag. it means 0 or 1 (0x0,0x8) only.
+- size bit
+    - 11 (Max value in binary)= 0x18 (hex)
+    - bit positions:
+        - 0x10 (bit at position 4)
+        - 0x08 (bit at position 3)
