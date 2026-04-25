@@ -335,4 +335,80 @@ The full behavior can be observed in the attached debugging video.
 
 <img src="./images/context_persistence_bug_images/after_fix.png">
 
+## **5. Incomplete State Cleanup Across Maps**
 
+### **5.1 Observation**
+
+After fixing context reset, another issue appeared:
+
+> Detection signals stopped updating correctly for new processes.
+
+Further inspection showed that auxiliary maps such as:
+
+* `connect_map`
+* `dup_map`
+* `execve_hash_map`
+
+were not being cleared on process exit.
+
+<img src="./images/context_persistence_bug_images/broken_maps.png">
+
+### **5.2 Root Cause**
+
+While `ke_ctx_state` was reset, related per-context maps still contained stale entries.
+
+This created a mismatch:
+
+* state = clean
+* signals = old
+
+Result:
+
+* incorrect rule evaluation
+* potential detection bypass
+
+<img src="./images/context_persistence_bug_images/blindspot.png">
+
+### **5.3 Fix**
+
+Extend cleanup to all related maps:
+
+```c id="h3q9fd"
+bpf_map_delete_elem(&execve_hash_map, cid);
+bpf_map_delete_elem(&dup_temp_map, cid);
+bpf_map_delete_elem(&connect_map, cid);
+```
+
+<img src="./images/context_persistence_bug_images/after_fix_Incomplete_State_Cleanup.png">
+
+## **6. Conclusion**
+
+This issue initially appeared as a simple context persistence bug, but debugging it revealed a deeper set of problems in how state was managed across the system.
+
+What started as:
+
+* incorrect context cleanup after process termination
+
+led to uncovering:
+
+* mismatch between TID-based signals and TGID-based context tracking
+* state (`ke_ctx_state`) not being reset after process exit
+* incomplete cleanup across related maps (`connect_map`, `dup_map`, `execve_hash_map`)
+
+Each fix exposed another layer, showing that the problem was not a single bug, but a series of incorrect assumptions about process lifecycle and state handling.
+
+The key takeaway from this debugging process is:
+
+> In stateful detection systems, correctness depends not only on identifying signals, but on maintaining consistent and complete state across the entire lifecycle of a process.
+
+A missed cleanup, partial reset, or mismatched identifier is enough to:
+
+* create false positives
+* break normal system behavior
+* or introduce detection bypass opportunities
+
+After aligning cleanup with process lifecycle and ensuring all related state is properly reset, the system behaves as expected:
+
+* no persistent false positives
+* no unintended process termination
+* consistent detection across executions
