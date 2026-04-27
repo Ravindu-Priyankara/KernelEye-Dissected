@@ -3,6 +3,10 @@
 During kernelEye detection rule adjustments, I encountered an interesting bug worth sharing.
 The issue can be reproduced and understood within a few minutes through the write-up or the debugging video, but the actual root cause and fix took nearly two days of investigation and iteration.
 
+## Full debugging session (1-hour live kernel investigation):
+
+https://youtu.be/-VOtwj4bsn0
+
 ## 1.The Problem
 
 Normally, the system behaves as follows
@@ -412,3 +416,15 @@ After aligning cleanup with process lifecycle and ensuring all related state is 
 * no persistent false positives
 * no unintended process termination
 * consistent detection across executions
+
+## 7. Final Optimization: Hardening the TGID Context.
+
+> ### **Update: Transitioning from Helpers to Direct Task Access**
+> 
+> After the initial fix, I performed one final optimization to move from **Assumed Stability** to **Guaranteed Stability**. 
+>
+> **The Change:** > While the `bpf_get_current_pid_tgid() >> 32` helper works in most scenarios, I transitioned the cleanup logic to use `bpf_get_current_task()` and `BPF_CORE_READ(task, tgid)`.
+>
+> **The Reasoning:** > By pulling the TGID directly from the `task_struct` memory, we remove any dependency on the CPU's current helper context during the volatile "teardown" phase of the process exit. This ensures that the ID used for map cleanup is derived directly from the kernel’s source of truth for that specific task.
+>
+> *Note: This implementation is reflected in the final debugging video and source code, providing a more robust enforcement layer.*
