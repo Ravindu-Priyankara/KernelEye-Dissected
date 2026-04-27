@@ -1,9 +1,13 @@
-# When Process Death Doesn’t Reset Risk: Context Persistence Bug in eBPF Detection
+# When Killing a Process Doesn’t Kill the Risk: Debugging a Context Persistence Bug in eBPF
 
 During kernelEye detection rule adjustments, I encountered an interesting bug worth sharing.
 The issue can be reproduced and understood within a few minutes through the write-up or the debugging video, but the actual root cause and fix took nearly two days of investigation and iteration.
 
 ## Full debugging session (1-hour live kernel investigation):
+
+This issue wasn’t obvious — it required stepping through kernel behavior, tracing process lifecycle events, and iterating on multiple incorrect assumptions.
+
+If you want to see the full investigation process (including mistakes, verifier issues, and live fixes), you can watch the complete session here:
 
 https://youtu.be/-VOtwj4bsn0
 
@@ -428,3 +432,9 @@ After aligning cleanup with process lifecycle and ensuring all related state is 
 > **The Reasoning:** > By pulling the TGID directly from the `task_struct` memory, we remove any dependency on the CPU's current helper context during the volatile "teardown" phase of the process exit. This ensures that the ID used for map cleanup is derived directly from the kernel’s source of truth for that specific task.
 >
 > *Note: This implementation is reflected in the final debugging video and source code, providing a more robust enforcement layer.*
+
+---
+
+## 📌 Related
+
+- 🎥 Full debugging session: https://youtu.be/-VOtwj4bsn0
